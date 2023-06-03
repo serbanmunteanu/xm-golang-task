@@ -68,11 +68,11 @@ func (ac *authController) singUp(context *gin.Context) {
 		return
 	}
 
-	accessToken, err := ac.jwt.CreateJwt(user.MapToUserResponse(newUser))
+	accessToken, err := ac.jwt.CreateJwt(user.MapToUserDto(newUser))
 
 	context.JSON(
 		http.StatusCreated,
-		gin.H{"status": "success", "user": user.MapToUserResponse(newUser), "accessToken": accessToken},
+		gin.H{"accessToken": accessToken},
 	)
 }
 
@@ -84,7 +84,7 @@ func (ac *authController) signIn(context *gin.Context) {
 		return
 	}
 
-	user, err := ac.userRepository.Read(strings.ToLower(credentials.Email))
+	loggedUser, err := ac.userRepository.Read(strings.ToLower(credentials.Email))
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -95,16 +95,16 @@ func (ac *authController) signIn(context *gin.Context) {
 		return
 	}
 
-	if err = utils.VerifyPassword(user.Password, credentials.Password); err != nil {
+	if err = utils.VerifyPassword(loggedUser.Password, credentials.Password); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Invalid email or password"})
 		return
 	}
 
-	accessToken, err := ac.jwt.CreateJwt(user.ID)
+	accessToken, err := ac.jwt.CreateJwt(user.MapToUserDto(loggedUser))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"status": "success", "access_token": accessToken})
+	context.JSON(http.StatusOK, gin.H{"access_token": accessToken})
 }

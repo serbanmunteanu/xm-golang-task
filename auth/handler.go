@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	jwtPkg "github.com/golang-jwt/jwt/v4"
 	"github.com/serbanmunteanu/xm-golang-task/jwt"
+	"github.com/serbanmunteanu/xm-golang-task/user"
 	"github.com/serbanmunteanu/xm-golang-task/user/repository"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type AuthHandler interface {
@@ -42,24 +42,24 @@ func (a *authHandler) GetAuthentication() gin.HandlerFunc {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
 			return
 		}
-		userId, err := primitive.ObjectIDFromHex(claims["sub"].(string))
+		loggedUser := claims["sub"].(user.UserDto)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
 			return
 		}
-		context.Set("userId", userId)
+		context.Set("user", loggedUser)
 		context.Next()
 	}
 }
 
 func (a *authHandler) GetAuthorization() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userId, ok := context.Get("userId")
+		loggedUser, ok := context.Get("user")
 		if !ok {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": "cannot read the user"})
 			return
 		}
-		currentUser, err := a.userRepository.Read(userId.(string))
+		currentUser, err := a.userRepository.Read(loggedUser.(user.UserDto).Email)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": err.Error()})
 			return

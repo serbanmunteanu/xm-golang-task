@@ -3,6 +3,7 @@ package http_framework
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/auth"
+	"github.com/serbanmunteanu/xm-golang-task/company"
 	"github.com/serbanmunteanu/xm-golang-task/di"
 	"github.com/serbanmunteanu/xm-golang-task/swagger"
 )
@@ -30,8 +31,10 @@ func Initialize(router *gin.Engine, di *di.DI) {
 			middlewares: []gin.HandlerFunc{},
 		},
 		{
-			groupPrefix:    "/api",
-			routeRegisters: []RouteRegister{},
+			groupPrefix: "/api",
+			routeRegisters: []RouteRegister{
+				company.NewCompanyController(),
+			},
 			middlewares: []gin.HandlerFunc{
 				authHandler.GetAuthentication(),
 				authHandler.GetAuthorization(),

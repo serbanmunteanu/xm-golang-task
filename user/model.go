@@ -17,7 +17,7 @@ type UserDbModel struct {
 	UpdatedAt time.Time          `bson:"updatedAt"`
 }
 
-type UserResponse struct {
+type UserDto struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name      string             `json:"name,omitempty" bson:"name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
@@ -26,8 +26,8 @@ type UserResponse struct {
 	UpdatedAt time.Time          `json:"updatedAt" bson:"updatedAt"`
 }
 
-func MapToUserResponse(user *UserDbModel) UserResponse {
-	return UserResponse{
+func MapToUserDto(user *UserDbModel) UserDto {
+	return UserDto{
 		ID:        user.ID,
 		Email:     user.Email,
 		Name:      user.Name,
