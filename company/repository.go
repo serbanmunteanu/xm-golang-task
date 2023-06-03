@@ -1,1 +1,9 @@
 package company
+
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
+type CompanyRepository interface {
+	Create(company *Model) error
+	Read(id primitive.ObjectID) (*Model, error)
+	Count(name string) (int64, error)
+}

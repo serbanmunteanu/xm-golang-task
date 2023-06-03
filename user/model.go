@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type UserDbModel struct {
+type Model struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	Name      string             `bson:"name"`
 	Email     string             `bson:"email"`
@@ -17,7 +17,7 @@ type UserDbModel struct {
 	UpdatedAt time.Time          `bson:"updatedAt"`
 }
 
-type UserDto struct {
+type Dto struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name      string             `json:"name,omitempty" bson:"name,omitempty"`
 	Email     string             `json:"email,omitempty" bson:"email,omitempty"`
@@ -26,8 +26,8 @@ type UserDto struct {
 	UpdatedAt time.Time          `json:"updatedAt" bson:"updatedAt"`
 }
 
-func MapToUserDto(user *UserDbModel) UserDto {
-	return UserDto{
+func ToUserDto(user *Model) Dto {
+	return Dto{
 		ID:        user.ID,
 		Email:     user.Email,
 		Name:      user.Name,

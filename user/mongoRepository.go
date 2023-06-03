@@ -1,8 +1,7 @@
-package repository
+package user
 
 import (
 	"github.com/serbanmunteanu/xm-golang-task/mongodb"
-	"github.com/serbanmunteanu/xm-golang-task/user"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -12,14 +11,7 @@ type mongoUserRepository struct {
 	collection string
 }
 
-func NewMongoUserRepository(client *mongodb.Client, collection string) UserRepository {
-	return &mongoUserRepository{
-		client:     client,
-		collection: collection,
-	}
-}
-
-func (us *mongoUserRepository) Create(user *user.UserDbModel) error {
+func (us *mongoUserRepository) Create(user *Model) error {
 	id, err := us.client.Insert(us.collection, user)
 
 	if err != nil {
@@ -31,8 +23,8 @@ func (us *mongoUserRepository) Create(user *user.UserDbModel) error {
 	return nil
 }
 
-func (us *mongoUserRepository) Read(email string) (*user.UserDbModel, error) {
-	var userModel user.UserDbModel
+func (us *mongoUserRepository) Read(email string) (*Model, error) {
+	var userModel Model
 
 	err := us.client.FindOne(us.collection, bson.M{"email": email}, &userModel)
 
@@ -41,4 +33,11 @@ func (us *mongoUserRepository) Read(email string) (*user.UserDbModel, error) {
 	}
 
 	return &userModel, nil
+}
+
+func NewMongoRepository(client *mongodb.Client, collection string) UserRepository {
+	return &mongoUserRepository{
+		client:     client,
+		collection: collection,
+	}
 }

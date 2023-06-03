@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
@@ -8,7 +9,6 @@ import (
 	jwtPkg "github.com/golang-jwt/jwt/v4"
 	"github.com/serbanmunteanu/xm-golang-task/jwt"
 	"github.com/serbanmunteanu/xm-golang-task/user"
-	"github.com/serbanmunteanu/xm-golang-task/user/repository"
 )
 
 type AuthHandler interface {
@@ -19,10 +19,10 @@ type AuthHandler interface {
 type authHandler struct {
 	authTrustedProxy string
 	jwt              jwt.Jwt
-	userRepository   repository.UserRepository
+	userRepository   user.UserRepository
 }
 
-func NewAuthHandler(jwt jwt.Jwt, userRepository repository.UserRepository) AuthHandler {
+func NewAuthHandler(jwt jwt.Jwt, userRepository user.UserRepository) AuthHandler {
 	return &authHandler{
 		authTrustedProxy: os.Getenv("AUTH_TRUSTED_PROXY"),
 		jwt:              jwt,
@@ -42,12 +42,7 @@ func (a *authHandler) GetAuthentication() gin.HandlerFunc {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
 			return
 		}
-		loggedUser := claims["sub"].(user.UserDto)
-		if err != nil {
-			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
-			return
-		}
-		context.Set("user", loggedUser)
+		context.Set("user", claims["sub"])
 		context.Next()
 	}
 }
@@ -59,12 +54,16 @@ func (a *authHandler) GetAuthorization() gin.HandlerFunc {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": "cannot read the user"})
 			return
 		}
-		currentUser, err := a.userRepository.Read(loggedUser.(user.UserDto).Email)
+		bytes, err := json.Marshal(loggedUser)
 		if err != nil {
-			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": err.Error()})
-			return
+			panic(err)
 		}
-		if currentUser.Role != "default" {
+		var model user.Model
+		err = json.Unmarshal(bytes, &model)
+		if err != nil {
+			panic(err)
+		}
+		if model.Role != "default" {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": "you don't have enough permissions"})
 			return
 		}

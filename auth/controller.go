@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/jwt"
 	"github.com/serbanmunteanu/xm-golang-task/user"
-	"github.com/serbanmunteanu/xm-golang-task/user/repository"
 	"github.com/serbanmunteanu/xm-golang-task/utils"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,11 +20,11 @@ type AuthController interface {
 }
 
 type authController struct {
-	userRepository repository.UserRepository
+	userRepository user.UserRepository
 	jwt            jwt.Jwt
 }
 
-func NewAuthController(userRepository repository.UserRepository, jwt jwt.Jwt) AuthController {
+func NewAuthController(userRepository user.UserRepository, jwt jwt.Jwt) AuthController {
 	return &authController{
 		userRepository: userRepository,
 		jwt:            jwt,
@@ -52,7 +51,7 @@ func (ac *authController) singUp(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
-	newUser := &user.UserDbModel{
+	newUser := &user.Model{
 		Name:      signUp.Name,
 		Email:     strings.ToLower(signUp.Email),
 		Password:  hashedPassword,
@@ -68,7 +67,7 @@ func (ac *authController) singUp(context *gin.Context) {
 		return
 	}
 
-	accessToken, err := ac.jwt.CreateJwt(user.MapToUserDto(newUser))
+	accessToken, err := ac.jwt.CreateJwt(user.ToUserDto(newUser))
 
 	context.JSON(
 		http.StatusCreated,
@@ -100,7 +99,7 @@ func (ac *authController) signIn(context *gin.Context) {
 		return
 	}
 
-	accessToken, err := ac.jwt.CreateJwt(user.MapToUserDto(loggedUser))
+	accessToken, err := ac.jwt.CreateJwt(user.ToUserDto(loggedUser))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return

@@ -1,11 +1,13 @@
 package di
 
 import (
+	companyRepo "github.com/serbanmunteanu/xm-golang-task/company"
 	"github.com/serbanmunteanu/xm-golang-task/jwt"
-	"github.com/serbanmunteanu/xm-golang-task/user/repository"
+	userRepo "github.com/serbanmunteanu/xm-golang-task/user"
 )
 
 type DI struct {
-	UserRepository repository.UserRepository
-	Jwt            jwt.Jwt
+	UserRepository    userRepo.UserRepository
+	CompanyRepository companyRepo.CompanyRepository
+	Jwt               jwt.Jwt
 }

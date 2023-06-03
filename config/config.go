@@ -35,7 +35,8 @@ type PostgresConfig struct {
 }
 
 type Collections struct {
-	UserCollection string `yaml:"userCollection"`
+	UserCollection    string `yaml:"userCollection"`
+	CompanyCollection string `yaml:"companyCollection"`
 }
 
 func LoadConfig(filePath string) (*WebServerConfig, error) {

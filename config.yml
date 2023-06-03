@@ -8,6 +8,7 @@ mongoConfig:
   database: "xm-golang"
   collections:
     userCollection: "user"
+    companyCollection: "company"
 postgresConfig:
   url: ""
   timeOutInSeconds: 30

@@ -33,7 +33,7 @@ func Initialize(router *gin.Engine, di *di.DI) {
 		{
 			groupPrefix: "/api",
 			routeRegisters: []RouteRegister{
-				company.NewCompanyController(),
+				company.NewCompanyController(di.CompanyRepository),
 			},
 			middlewares: []gin.HandlerFunc{
 				authHandler.GetAuthentication(),
