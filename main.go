@@ -1,15 +1,13 @@
 package main
 
 import (
-	"context"
-	"time"
-
 	"github.com/serbanmunteanu/xm-golang-task/config"
-	http_framework "github.com/serbanmunteanu/xm-golang-task/http-framework"
+	"github.com/serbanmunteanu/xm-golang-task/di"
+	httpframework "github.com/serbanmunteanu/xm-golang-task/http-framework"
+	"github.com/serbanmunteanu/xm-golang-task/jwt"
 	"github.com/serbanmunteanu/xm-golang-task/logger"
 	"github.com/serbanmunteanu/xm-golang-task/mongodb"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/serbanmunteanu/xm-golang-task/user/repository"
 )
 
 func main() {
@@ -18,25 +16,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	//@TODO: add switch for easy change to postgres repo type
 	mongoClient, err := mongodb.NewMongoClient(cfg.MongoConfig)
 	if err != nil {
 		panic(err)
 	}
-	server := http_framework.NewHttpServer(cfg, mongoClient)
-	server.Boot()
-}
+	userRepository := repository.NewMongoUserRepository(mongoClient, cfg.MongoConfig.Collections.UserCollection)
+	jwt := jwt.NewJwt(cfg.JwtConfig)
 
-func initMongoDB(cfg config.MongoConfig) (*mongo.Database, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Url))
-	if err != nil {
-		return nil, err
+	diContainer := &di.DI{
+		UserRepository: userRepository,
+		Jwt:            jwt,
 	}
-	db := mongoClient.Database(cfg.Database)
-	err = db.Client().Ping(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
+
+	server := httpframework.NewServer(cfg, diContainer)
+	server.Boot()
 }

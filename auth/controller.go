@@ -8,32 +8,38 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/jwt"
 	"github.com/serbanmunteanu/xm-golang-task/user"
+	"github.com/serbanmunteanu/xm-golang-task/user/repository"
 	"github.com/serbanmunteanu/xm-golang-task/utils"
 	log "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type AuthController struct {
-	userRepository *user.UserRepository
-	jwt            *jwt.Jwt
+type AuthController interface {
+	singUp(context *gin.Context)
+	signIn(context *gin.Context)
+	Register(routerGroup *gin.RouterGroup)
 }
 
-func NewAuthController(userRepository *user.UserRepository, jwt *jwt.Jwt) *AuthController {
-	return &AuthController{
+type authController struct {
+	userRepository repository.UserRepository
+	jwt            jwt.Jwt
+}
+
+func NewAuthController(userRepository repository.UserRepository, jwt jwt.Jwt) AuthController {
+	return &authController{
 		userRepository: userRepository,
 		jwt:            jwt,
 	}
 }
 
-func (ac *AuthController) Register(routerGroup *gin.RouterGroup) {
+func (ac *authController) Register(routerGroup *gin.RouterGroup) {
 	router := routerGroup.Group("/auth")
 
 	router.POST("/register", ac.singUp)
 	router.POST("/login", ac.signIn)
 }
 
-func (ac *AuthController) singUp(context *gin.Context) {
+func (ac *authController) singUp(context *gin.Context) {
 	var signUp *SignUpInput
 
 	if err := context.ShouldBindJSON(&signUp); err != nil {
@@ -55,14 +61,14 @@ func (ac *AuthController) singUp(context *gin.Context) {
 		Role:      "default",
 		Verified:  false,
 	}
-	err = ac.userRepository.Insert(newUser)
+	err = ac.userRepository.Create(newUser)
 	if err != nil {
 		log.Info(err)
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
-	accessToken, err := ac.jwt.CreateJwt(newUser.ID)
+	accessToken, err := ac.jwt.CreateJwt(user.MapToUserResponse(newUser))
 
 	context.JSON(
 		http.StatusCreated,
@@ -70,7 +76,7 @@ func (ac *AuthController) singUp(context *gin.Context) {
 	)
 }
 
-func (ac *AuthController) signIn(context *gin.Context) {
+func (ac *authController) signIn(context *gin.Context) {
 	var credentials *SignInInput
 
 	if err := context.ShouldBindJSON(&credentials); err != nil {
@@ -78,7 +84,7 @@ func (ac *AuthController) signIn(context *gin.Context) {
 		return
 	}
 
-	user, err := ac.userRepository.FindOneBy(bson.M{"email": strings.ToLower(credentials.Email)})
+	user, err := ac.userRepository.Read(strings.ToLower(credentials.Email))
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

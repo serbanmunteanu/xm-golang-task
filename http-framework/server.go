@@ -10,23 +10,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/config"
+	"github.com/serbanmunteanu/xm-golang-task/di"
 	"github.com/serbanmunteanu/xm-golang-task/http-framework/middleware"
-	"github.com/serbanmunteanu/xm-golang-task/mongodb"
 	log "github.com/sirupsen/logrus"
 )
 
-type HttpDependencies struct {
-}
-
 type HttpServer struct {
 	config *config.WebServerConfig
-	mongo  *mongodb.Client
+	di     *di.DI
 }
 
-func NewHttpServer(config *config.WebServerConfig, mongo *mongodb.Client) *HttpServer {
+func NewServer(config *config.WebServerConfig, di *di.DI) *HttpServer {
 	return &HttpServer{
 		config: config,
-		mongo:  mongo,
+		di:     di,
 	}
 }
 
@@ -44,7 +41,7 @@ func (hs *HttpServer) Boot() {
 
 	router.Use(gin.Recovery())
 
-	Initialize(router, hs)
+	Initialize(router, hs.di)
 
 	log.Info("Starting server on port ", hs.config.ServerPort)
 

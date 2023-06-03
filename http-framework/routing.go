@@ -3,9 +3,8 @@ package http_framework
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/auth"
-	"github.com/serbanmunteanu/xm-golang-task/jwt"
+	"github.com/serbanmunteanu/xm-golang-task/di"
 	"github.com/serbanmunteanu/xm-golang-task/swagger"
-	"github.com/serbanmunteanu/xm-golang-task/user"
 )
 
 type RouteRegister interface {
@@ -18,16 +17,15 @@ type RouteGroup struct {
 	middlewares    []gin.HandlerFunc
 }
 
-func Initialize(router *gin.Engine, httpServer *HttpServer) {
-	userRepository := user.NewUserRepository(httpServer.mongo, httpServer.config.MongoConfig.Collections.UserCollection)
-	jwt := jwt.NewJwt(httpServer.config.JwtConfig)
-	authHandler := auth.NewAuthHandler(jwt, userRepository)
+func Initialize(router *gin.Engine, di *di.DI) {
+	authHandler := auth.NewAuthHandler(di.Jwt, di.UserRepository)
+
 	routeGroups := []RouteGroup{
 		{
 			groupPrefix: "",
 			routeRegisters: []RouteRegister{
 				swagger.NewSwaggerController(),
-				auth.NewAuthController(userRepository, jwt),
+				auth.NewAuthController(di.UserRepository, di.Jwt),
 			},
 			middlewares: []gin.HandlerFunc{},
 		},

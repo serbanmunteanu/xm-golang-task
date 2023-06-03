@@ -5,35 +5,39 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
-	jwt2 "github.com/serbanmunteanu/xm-golang-task/jwt"
-	"github.com/serbanmunteanu/xm-golang-task/user"
-	"go.mongodb.org/mongo-driver/bson"
+	jwtPkg "github.com/golang-jwt/jwt/v4"
+	"github.com/serbanmunteanu/xm-golang-task/jwt"
+	"github.com/serbanmunteanu/xm-golang-task/user/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type AuthHandler struct {
-	authTrustedProxy string
-	jwt              *jwt2.Jwt
-	userRepository   *user.UserRepository
+type AuthHandler interface {
+	GetAuthentication() gin.HandlerFunc
+	GetAuthorization() gin.HandlerFunc
 }
 
-func NewAuthHandler(jwt *jwt2.Jwt, userRepository *user.UserRepository) *AuthHandler {
-	return &AuthHandler{
+type authHandler struct {
+	authTrustedProxy string
+	jwt              jwt.Jwt
+	userRepository   repository.UserRepository
+}
+
+func NewAuthHandler(jwt jwt.Jwt, userRepository repository.UserRepository) AuthHandler {
+	return &authHandler{
 		authTrustedProxy: os.Getenv("AUTH_TRUSTED_PROXY"),
 		jwt:              jwt,
 		userRepository:   userRepository,
 	}
 }
 
-func (a *AuthHandler) GetAuthentication() gin.HandlerFunc {
+func (a *authHandler) GetAuthentication() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		claims, err := a.jwt.Validate(context.Request.Header.Get("Authorization"))
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
 			return
 		}
-		err, ok := claims.Valid().(jwt.ValidationError)
+		err, ok := claims.Valid().(jwtPkg.ValidationError)
 		if ok {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Authentication": "failed", "err": err.Error()})
 			return
@@ -48,14 +52,14 @@ func (a *AuthHandler) GetAuthentication() gin.HandlerFunc {
 	}
 }
 
-func (a *AuthHandler) GetAuthorization() gin.HandlerFunc {
+func (a *authHandler) GetAuthorization() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		userId, ok := context.Get("userId")
 		if !ok {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": "cannot read the user"})
 			return
 		}
-		currentUser, err := a.userRepository.FindOneBy(bson.M{"_id": userId})
+		currentUser, err := a.userRepository.Read(userId.(string))
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Authorization": "failed", "err": err.Error()})
 			return

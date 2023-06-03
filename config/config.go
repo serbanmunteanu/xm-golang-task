@@ -8,10 +8,11 @@ import (
 )
 
 type WebServerConfig struct {
-	JwtConfig          JwtConfig   `yaml:"jwtConfig"`
-	MongoConfig        MongoConfig `yaml:"mongoConfig"`
-	ServerPort         int         `yaml:"serverPort"`
-	ConcurrentRequests int         `yaml:"concurrentRequests"`
+	JwtConfig          JwtConfig      `yaml:"jwtConfig"`
+	MongoConfig        MongoConfig    `yaml:"mongoConfig"`
+	PostgresConfig     PostgresConfig `yaml:"postgresConfig"`
+	ServerPort         int            `yaml:"serverPort"`
+	ConcurrentRequests int            `yaml:"concurrentRequests"`
 }
 
 type JwtConfig struct {
@@ -25,6 +26,12 @@ type MongoConfig struct {
 	TimeOutInSeconds int         `yaml:"timeOutInSeconds"`
 	Database         string      `yaml:"database"`
 	Collections      Collections `yaml:"collections"`
+}
+
+type PostgresConfig struct {
+	Url              string `yaml:"url"`
+	TimeOutInSeconds int    `yaml:"timeOutInSeconds"`
+	Database         string `yaml:"database"`
 }
 
 type Collections struct {

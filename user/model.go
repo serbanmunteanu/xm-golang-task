@@ -36,11 +36,3 @@ func MapToUserResponse(user *UserDbModel) UserResponse {
 		UpdatedAt: user.UpdatedAt,
 	}
 }
-
-func MapToUsersResponse(users []UserDbModel) []UserResponse {
-	response := make([]UserResponse, 0)
-	for _, user := range users {
-		response = append(response, MapToUserResponse(&user))
-	}
-	return response
-}
