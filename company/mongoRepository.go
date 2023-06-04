@@ -33,6 +33,14 @@ func (m mongoCompanyRepository) Count(name string) (int64, error) {
 	return m.client.CountDocuments(m.collection, bson.M{"name": name})
 }
 
+func (m mongoCompanyRepository) Update(id primitive.ObjectID, updates interface{}) error {
+	return m.client.UpdateByID(m.collection, id, bson.M{"$set": updates})
+}
+
+func (m mongoCompanyRepository) Delete(id primitive.ObjectID) error {
+	return m.client.Delete(m.collection, id)
+}
+
 func NewMongoRepository(client *mongodb.Client, collection string) CompanyRepository {
 	return &mongoCompanyRepository{
 		client:     client,

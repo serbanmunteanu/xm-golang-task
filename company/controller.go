@@ -2,6 +2,7 @@ package company
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -47,6 +48,8 @@ func (c companyController) Create(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Field name must be unique"})
 		return
 	}
+	model.CreatedAt = time.Now()
+	model.UpdatedAt = time.Now()
 	err = c.repo.Create(model)
 	if err != nil {
 		log.Info(err)
@@ -79,13 +82,48 @@ func (c companyController) Read(context *gin.Context) {
 }
 
 func (c companyController) Update(context *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	id := context.Param("id")
+	var updates map[string]interface{}
+	if err := context.ShouldBindJSON(&updates); err != nil {
+		context.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	err = c.repo.Update(objectId, updates)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	model, err := c.repo.Read(objectId)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	context.JSON(
+		http.StatusOK,
+		model,
+	)
 }
 
 func (c companyController) Delete(context *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	id := context.Param("id")
+	objectId, err := primitive.ObjectIDFromHex(id)
+	err = c.repo.Delete(objectId)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	context.JSON(http.StatusOK, gin.H{})
 }
 
 func NewCompanyController(repo CompanyRepository) CompanyController {

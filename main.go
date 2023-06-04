@@ -25,7 +25,7 @@ func main() {
 	}
 
 	userRepository := userRepo.NewMongoRepository(mongoClient, cfg.MongoConfig.Collections.UserCollection)
-	companyRepository := companyRepo.NewMongoRepository(mongoClient, cfg.MongoConfig.Collections.UserCollection)
+	companyRepository := companyRepo.NewMongoRepository(mongoClient, cfg.MongoConfig.Collections.CompanyCollection)
 
 	jwt := jwt.NewJwt(cfg.JwtConfig)
 
