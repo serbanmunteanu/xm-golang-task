@@ -11,27 +11,34 @@ type WebServerConfig struct {
 	JwtConfig          JwtConfig      `yaml:"jwtConfig"`
 	MongoConfig        MongoConfig    `yaml:"mongoConfig"`
 	PostgresConfig     PostgresConfig `yaml:"postgresConfig"`
+	KafkaConfig        KafkaConfig    `yaml:"kafkaConfig"`
 	ServerPort         int            `yaml:"serverPort"`
 	ConcurrentRequests int            `yaml:"concurrentRequests"`
 }
 
 type JwtConfig struct {
-	Ttl        int    `yaml:"ttl"`
+	TTL        int    `yaml:"ttl"`
 	PrivateKey string `yaml:"privateKey"`
 	PublicKey  string `yaml:"publicKey"`
 }
 
 type MongoConfig struct {
-	Url              string      `yaml:"url"`
+	URL              string      `yaml:"url"`
 	TimeOutInSeconds int         `yaml:"timeOutInSeconds"`
 	Database         string      `yaml:"database"`
 	Collections      Collections `yaml:"collections"`
 }
 
 type PostgresConfig struct {
-	Url              string `yaml:"url"`
+	URL              string `yaml:"url"`
 	TimeOutInSeconds int    `yaml:"timeOutInSeconds"`
 	Database         string `yaml:"database"`
+}
+
+type KafkaConfig struct {
+	Addr          string `yaml:"addr"`
+	Topic         string `yaml:"topic"`
+	ReaderGroupID string `yaml:"readerGroupId"`
 }
 
 type Collections struct {

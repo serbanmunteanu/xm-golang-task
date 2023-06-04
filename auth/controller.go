@@ -13,18 +13,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type AuthController interface {
+type IController interface {
 	singUp(context *gin.Context)
 	signIn(context *gin.Context)
 	Register(routerGroup *gin.RouterGroup)
 }
 
 type authController struct {
-	userRepository user.UserRepository
+	userRepository user.IRepository
 	jwt            jwt.Jwt
 }
 
-func NewAuthController(userRepository user.UserRepository, jwt jwt.Jwt) AuthController {
+func NewAuthController(userRepository user.IRepository, jwt jwt.Jwt) IController {
 	return &authController{
 		userRepository: userRepository,
 		jwt:            jwt,
@@ -68,6 +68,12 @@ func (ac *authController) singUp(context *gin.Context) {
 	}
 
 	accessToken, err := ac.jwt.CreateJwt(user.ToUserDto(newUser))
+
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
 
 	context.JSON(
 		http.StatusCreated,

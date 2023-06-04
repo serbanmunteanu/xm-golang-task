@@ -1,4 +1,4 @@
-package http_framework
+package httpframework
 
 import (
 	"context"
@@ -11,23 +11,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/serbanmunteanu/xm-golang-task/config"
 	"github.com/serbanmunteanu/xm-golang-task/di"
-	"github.com/serbanmunteanu/xm-golang-task/http-framework/middleware"
+	"github.com/serbanmunteanu/xm-golang-task/httpframework/middleware"
+	"github.com/serbanmunteanu/xm-golang-task/server"
 	log "github.com/sirupsen/logrus"
 )
 
-type HttpServer struct {
+type HTTPServer struct {
 	config *config.WebServerConfig
 	di     *di.DI
 }
 
-func NewServer(config *config.WebServerConfig, di *di.DI) *HttpServer {
-	return &HttpServer{
+func NewServer(config *config.WebServerConfig, di *di.DI) server.IServer {
+	return &HTTPServer{
 		config: config,
 		di:     di,
 	}
 }
 
-func (hs *HttpServer) Boot() {
+func (hs *HTTPServer) Boot() {
 	router := gin.New()
 
 	middlewares := []middleware.RouterMiddleware{

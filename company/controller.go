@@ -1,16 +1,19 @@
 package company
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/serbanmunteanu/xm-golang-task/kafka"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type CompanyController interface {
+type IController interface {
 	Create(context *gin.Context)
 	Read(context *gin.Context)
 	Update(context *gin.Context)
@@ -19,7 +22,8 @@ type CompanyController interface {
 }
 
 type companyController struct {
-	repo CompanyRepository
+	repo     IRepository
+	producer kafka.Producer
 }
 
 func (c companyController) Register(routerGroup *gin.RouterGroup) {
@@ -56,6 +60,14 @@ func (c companyController) Create(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
+	event, err := json.Marshal(model)
+	if err != nil {
+		log.Info(err)
+	}
+	err = c.producer.Produce([]byte(fmt.Sprintf("%s %s", "Company created: ", model.ID.String())), event)
+	if err != nil {
+		log.Info(err)
+	}
 	context.JSON(
 		http.StatusCreated,
 		model,
@@ -64,8 +76,13 @@ func (c companyController) Create(context *gin.Context) {
 
 func (c companyController) Read(context *gin.Context) {
 	id := context.Param("id")
-	objectId, err := primitive.ObjectIDFromHex(id)
-	model, err := c.repo.Read(objectId)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	model, err := c.repo.Read(objectID)
 	if err != nil {
 		log.Info(err)
 		status := http.StatusBadRequest
@@ -90,23 +107,32 @@ func (c companyController) Update(context *gin.Context) {
 		})
 		return
 	}
-	objectId, err := primitive.ObjectIDFromHex(id)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		log.Info(err)
 		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
-	err = c.repo.Update(objectId, updates)
+	updates["updatedAt"] = time.Now()
+	err = c.repo.Update(objectID, updates)
 	if err != nil {
 		log.Info(err)
-		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
-	model, err := c.repo.Read(objectId)
+	model, err := c.repo.Read(objectID)
 	if err != nil {
 		log.Info(err)
-		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
+	}
+	event, err := json.Marshal(updates)
+	if err != nil {
+		log.Info(err)
+	}
+	err = c.producer.Produce([]byte(fmt.Sprintf("%s %s", "Company updated: ", model.ID.String())), event)
+	if err != nil {
+		log.Info(err)
 	}
 	context.JSON(
 		http.StatusOK,
@@ -116,18 +142,28 @@ func (c companyController) Update(context *gin.Context) {
 
 func (c companyController) Delete(context *gin.Context) {
 	id := context.Param("id")
-	objectId, err := primitive.ObjectIDFromHex(id)
-	err = c.repo.Delete(objectId)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Info(err)
+		context.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+	err = c.repo.Delete(objectID)
 	if err != nil {
 		log.Info(err)
 		context.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
+	err = c.producer.Produce([]byte(fmt.Sprintf("%s %s", "Company delete: ", objectID.String())), []byte(id))
+	if err != nil {
+		log.Info(err)
+	}
 	context.JSON(http.StatusOK, gin.H{})
 }
 
-func NewCompanyController(repo CompanyRepository) CompanyController {
+func NewCompanyController(repo IRepository, producer kafka.Producer) IController {
 	return companyController{
-		repo: repo,
+		repo:     repo,
+		producer: producer,
 	}
 }

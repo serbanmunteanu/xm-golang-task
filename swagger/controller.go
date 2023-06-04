@@ -9,14 +9,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type SwaggerController struct {
+type Controller struct {
 }
 
-func NewSwaggerController() *SwaggerController {
-	return &SwaggerController{}
+func NewSwaggerController() *Controller {
+	return &Controller{}
 }
 
-func (sc *SwaggerController) Register(routerGroup *gin.RouterGroup) {
+func (sc *Controller) Register(routerGroup *gin.RouterGroup) {
 	routerGroup.GET("/swagger", func(context *gin.Context) {
 		filePath, err := getSwaggerFilepath()
 		if err != nil {

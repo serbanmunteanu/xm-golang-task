@@ -1,6 +1,6 @@
 package user
 
-type UserRepository interface {
+type IRepository interface {
 	Create(user *Model) error
 	Read(email string) (*Model, error)
 }

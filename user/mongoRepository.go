@@ -35,7 +35,7 @@ func (us *mongoUserRepository) Read(email string) (*Model, error) {
 	return &userModel, nil
 }
 
-func NewMongoRepository(client *mongodb.Client, collection string) UserRepository {
+func NewMongoRepository(client *mongodb.Client, collection string) IRepository {
 	return &mongoUserRepository{
 		client:     client,
 		collection: collection,

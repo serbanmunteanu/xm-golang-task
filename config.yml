@@ -13,5 +13,9 @@ postgresConfig:
   url: ""
   timeOutInSeconds: 30
   database: "xm-golang"
+kafkaConfig:
+  addr: "localhost:9092"
+  topic: "xm-golang-task"
+  readerGroupId: "xm-golang-task-reader"
 serverPort: 8080
 concurrentRequests: 100

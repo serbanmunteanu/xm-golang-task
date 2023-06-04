@@ -37,7 +37,7 @@ func (j *jwt) CreateJwt(payload interface{}) (string, error) {
 	now := time.Now().UTC()
 	claims := make(jwtPkg.MapClaims)
 	claims["sub"] = payload
-	claims["exp"] = now.Add(time.Duration(j.cfg.Ttl) * time.Hour).Unix()
+	claims["exp"] = now.Add(time.Duration(j.cfg.TTL) * time.Hour).Unix()
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
 

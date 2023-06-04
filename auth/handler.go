@@ -11,7 +11,7 @@ import (
 	"github.com/serbanmunteanu/xm-golang-task/user"
 )
 
-type AuthHandler interface {
+type IHandler interface {
 	GetAuthentication() gin.HandlerFunc
 	GetAuthorization() gin.HandlerFunc
 }
@@ -19,10 +19,10 @@ type AuthHandler interface {
 type authHandler struct {
 	authTrustedProxy string
 	jwt              jwt.Jwt
-	userRepository   user.UserRepository
+	userRepository   user.IRepository
 }
 
-func NewAuthHandler(jwt jwt.Jwt, userRepository user.UserRepository) AuthHandler {
+func NewAuthHandler(jwt jwt.Jwt, userRepository user.IRepository) IHandler {
 	return &authHandler{
 		authTrustedProxy: os.Getenv("AUTH_TRUSTED_PROXY"),
 		jwt:              jwt,

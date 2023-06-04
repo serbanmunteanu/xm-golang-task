@@ -1,4 +1,4 @@
-package http_framework
+package httpframework
 
 import (
 	"github.com/gin-gonic/gin"
@@ -33,7 +33,7 @@ func Initialize(router *gin.Engine, di *di.DI) {
 		{
 			groupPrefix: "/api",
 			routeRegisters: []RouteRegister{
-				company.NewCompanyController(di.CompanyRepository),
+				company.NewCompanyController(di.CompanyRepository, di.Producer),
 			},
 			middlewares: []gin.HandlerFunc{
 				authHandler.GetAuthentication(),

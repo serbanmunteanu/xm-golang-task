@@ -41,7 +41,7 @@ func (m mongoCompanyRepository) Delete(id primitive.ObjectID) error {
 	return m.client.Delete(m.collection, id)
 }
 
-func NewMongoRepository(client *mongodb.Client, collection string) CompanyRepository {
+func NewMongoRepository(client *mongodb.Client, collection string) IRepository {
 	return &mongoCompanyRepository{
 		client:     client,
 		collection: collection,

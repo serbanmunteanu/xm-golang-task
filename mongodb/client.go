@@ -18,7 +18,7 @@ type Client struct {
 }
 
 func NewMongoClient(config config.MongoConfig) (*Client, error) {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(config.Url))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(config.URL))
 
 	if err != nil {
 		return nil, err
