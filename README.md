@@ -17,6 +17,14 @@ I didn't use UUIDs for the company model because with MongoDB it would have made
 - [x] Linter
 - [x] Configuration file
 
+# How to run the app
+
+```shell
+$ docker-compose up -d 
+$ make create-kafka-topic
+$ make start
+```
+
 # Added also
 
 - [x] Makefile for shortcuts
